@@ -117,6 +117,14 @@ body{max-width:480px;padding-top:8px}
 .sb{flex:1;height:8px;background:#0a2038;border:1px solid #1f4d7a}.sb i{display:block;height:100%;background:linear-gradient(90deg,#2a8fff,#7fd6ff);box-shadow:0 0 6px #3aa8ff}
 @keyframes sysin{from{opacity:0;transform:translateY(-14px) scale(.97)}}
 .story{font-size:1.1rem;line-height:2.1}
+.pb{background:#5ec8ff;color:#06182c;border-radius:8px;padding:0 6px;font-size:.75rem;margin-inline-start:4px}
+.pl>div{cursor:pointer}
+.bagbtn{position:fixed;bottom:88px;inset-inline-end:12px;width:52px;height:52px;border-radius:50%;background:#0b1c33;border:1px solid #5ec8ff;color:#7fd6ff;box-shadow:0 0 14px #3aa8ff88;z-index:8;display:grid;place-items:center;padding:0}
+.bagbtn .i{width:26px;height:26px}
+.bagg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;margin:6px 0}
+.bg{border:1px solid #1f4d7a;border-radius:6px;background:#08182b;padding:6px 2px;display:flex;flex-direction:column;align-items:center}
+.bg .i{color:#7fd6ff;width:1.3em;height:1.3em}.bg small{color:#7fa9c9;font-size:.7rem}
+.plan{border-color:#1f4d7a;background:#08182b}
 </style>
 </head>
 <body>
@@ -124,6 +132,8 @@ body{max-width:480px;padding-top:8px}
 <div id="modal"></div>
 
 <script>
+const _ls=(()=>{try{return window.localStorage}catch(e){return{getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
+const store={getItem(k){let v=_ls.getItem('akd_'+k);if(v==null){v=_ls.getItem(k);if(v!=null)try{_ls.setItem('akd_'+k,v)}catch(e){}}return v},setItem(k,v){_ls.setItem('akd_'+k,v)},removeItem(k){_ls.removeItem('akd_'+k)}};
 const SK=['قوة','سرعة','تحمل','تخفي','علاج','صيد'];
 const ROLES={
 'مقاتل':{e:'⚔️',m:'قوة',w:'تخفي',pro:'قوي جداً في القتال، ويصمد أمام الوحوش والزعماء.',con:'صاخب وسهل الاكتشاف، ويستهلك ذخيرة أكثر.'},
@@ -150,37 +160,37 @@ const SYS=`إنت حكّاء روائي بارع، بتحكي للاعبين ق�
 1) مشهد من 180 إلى 250 كلمة، مشحون بالتوتر والدراما، يستخدم أسماء اللاعبين، وينتهي بلحظة معلّقة تفرض قراراً.
 2) سطر فيه @@@ بس.
 3) JSON واحد بدون أي كلام تاني:
-{"choices":["اختيار","اختيار","اختيار"],"fx":{"food":0,"water":0,"meds":0,"fuel":0,"ammo":0,"morale":0,"trust":0,"def":0},"kills":0,"hurt":{"0":0},"ally":null,"allyFx":[],"betray":null,"gone":[],"choicesOut":[],"choicesIn":[],"beat":"سطر واحد بيلخص اللي حصل","seed":null,"done":[],"by":null,"infect":null,"cast":[],"system":"","timer":false,"boss":false,"split":false,"power":null,"status":[],"cure":[],"end":null}
-القواعد: من 3 إلى 4 اختيارات مختلفة جداً (مكان، مخاطرة، رحمة، تضحية). fx تغييرات صغيرة (من -3 إلى +3) مرتبطة بنتيجة اختيار الفريق السابق. hurt = أضرار على اللاعبين بالرقم (index) من 0 إلى 25. kills = عدد المصابين/الوحوش اللي الفريق قتلهم في المشهد. ally = اسم ناجي جديد انضم أو null. seed = عاقبة مؤجلة تحصل بعد 3 مشاهد أو أكتر (مثلا "الناجي اللي سبناه هيرجع") أو null. استخدم الـseeds القديمة وارجع لها. timer=true في لحظة خطر حرجة. boss=true لو وحش ضخم. power = قوة خارقة عشوائية بثمن لواحد من اللاعبين {"p":index,"text":".."} أو null. الدرجات: النرد من 1 إلى 20 بيحدد نجاح الاختيار السابق (أقل من 8 فشل، أكتر من 14 نجاح كبير) ومهارات اللاعبين بتحسنه. اجعل ميزة كل دور وعيبه وسمته تظهر في تصرفات الشخصية دون ذكرها صراحة. الاختيار الذي يناسب مهارة أحدهم ينجح أكثر، ويجوز التلميح إليه بين قوسين بكلمتين (مثل: يناسب سعيد). الخيار الذي يناسب المهارة ينجح أكثر. القوة الخارقة (power) يجب أن يذكر نصها الميزة والثمن معاً. إذا كان وضع اللعب «لاعب منفرد» فخاطب البطل وحده، ولا تذكر فريقاً ولا تصويتاً ولا خلافاً بين اللاعبين. مكان البداية دائماً عادي ومألوف (منزل أو حديقة أو شارع)، أما الأماكن الغريبة كالسفينة والسجن والمستشفى فتأتي لاحقاً في منتصف الرحلة لا في بدايتها. وجّه القصة نحو «هدف الرحلة» المذكور، وأنهِها به أو بما يقاربه. الحالات (status): لكل حالة عنصر {"p":رقم اللاعب,"name":"اسم قصير","type":"buff أو debuff أو injury","sk":{"قوة":1},"scenes":عدد المشاهد من 2 إلى 5 أو 0 للدائمة,"text":"وصف الأثر في جملة"}، ومفاتيح sk من: قوة، سرعة، تحمل، تخفي، علاج، صيد. في المشهد الأول امنح لاعباً أو اثنين حالة (قوة أو ضعف) تناسب بداية الكارثة. في منتصف الرحلة (المشاهد 6 إلى 10) قد يكتسب لاعب قوة أو حالة قوية. في المشاهد الأخيرة قد تُمنح دفعة أخيرة أو يظهر ضعف يعقّد النهاية. الإصابة (injury) تنتج عن الأضرار الكبيرة والاختيارات الخطرة وتضعف مهارة لاعب عدة مشاهد، وإذا عولجت فاستخدم cure:[{"p":رقم,"name":"اسم الحالة"}]. لا تزد عن حالتين جديدتين في المشهد، وراعِ الحالات الحالية للاعبين في السرد والنتائج. def هو تحصين الملجأ (من 0 إلى 10): يزيد بالتحصين والإصلاح وينقص بالهجمات. عندما يكون الفريق في الملجأ قد تقع أحداث داخله: هجوم أو تسلل أو مرض أو نزاع أو سرقة أو زائر غريب، وكلما قل التحصين زادت الخطورة. وإذا كانت الموارد قليلة (طعام أو ماء 2 فأقل) فاجعل الجو ضاغطاً ويلمّح إلى الحاجة للخروج. الانقسام: إذا ذُكر في الحالة أن مجموعة في الخارج ومجموعة في الملجأ فاسرد ما يحدث للمجموعتين معاً (ابدأ الجزء الأول بـ «في الخارج:» والثاني بـ «في الملجأ:»)، وقد يصيب الأذى أياً منهما، وما تجلبه البعثة يظهر في fx، ومهارات الخارجين تؤثر في نجاحها. ضع split:true إذا بقيت المجموعتان منفصلتين لمشهد آخر، وإلا ضع false لتعود المجموعتان معاً. قرارات الفريق قد تكون إجراءً مثل التحصين أو الراحة أو الاستطلاع فاجعل لها أثراً واقعياً. الناجون: قد يقابل الفريق ناجين؛ إذا أُنقذوا فأضفهم مرة واحدة في ally كائناً {"name":"","skill":"مهارة تفيد الفريق"}. للحلفاء ثقة من 0 إلى 10 تراها في الحالة: غيّرها بـ allyFx:[{"name":"","trust":1}] حسب معاملة الفريق لهم (مشاركة الطعام والحماية والصدق ترفعها، والتخلي والكذب والتضحية بهم تخفضها). الحليف ذو الثقة 2 فأقل قد يخون في أي وقت (سرقة المؤن، كشف الموقع، الهروب) فاستعمل betray:"اسمه" مع الأثر في fx وhurt، والثقة 8 فأكثر تجعله وفياً يضحي ويساعد. استعمل gone:["اسم"] لمن يموت أو يغادر، وأشرك الحلفاء بمهاراتهم في المشاهد. عند الانقسام (split:true) أرجع choicesOut لمن في الخارج وchoicesIn لمن في الملجأ (من 3 إلى 4 اختيارات لكل مجموعة، مختلفة وتناسب موقف كل منهما) واترك choices فارغة؛ الحدثان يجريان في الوقت نفسه ويؤثر قرار كل مجموعة في الأخرى وفي المستقبل. في المشهد التالي يصلك قرارا المجموعتين معاً فاسرد النتيجتين المتزامنتين وأثر كل قرار في الآخر، وأعد الجميع للاجتماع (split:false) خلال مشهدين أو ثلاثة. الدراما: لا يمر أكثر من ثلاثة مشاهد دون حدث غير متوقع (انقلاب، خيانة، كشف سر، ظهور مفاجئ، موت صادم، مطاردة). اجعل الأبطال ينجون من الموت بالكاد ثم يدفعون الثمن. الأعداء وحوش وبشر معاً: عصابات ومؤامرات وقادة مخادعون. الشخصيات: لكل بطل رابط عاطفي (صديق أو قريب أو حبيب يريد إنقاذه) مسجّل في «الشخصيات»؛ حرّك خيطه كل بضعة مشاهد بنتائج مفرحة أو موجعة. وأدخل شخصيات ثانوية مؤثرة: حبيب أو حبيبة يقع في حب أحد الأبطال أو يقع هو في حبه، عدو شخصي يكرهه ويتربص به ويحاول قتله، خائن، غامض. سجّلها وعدّلها في cast:[{"name":"","role":"رابط|حب|عدو|صديق|خائن|مجهول","note":"حالتها في جملة"}] وأضف gone:true لمن يخرج من القصة، وتابعها في المشاهد التالية بدل نسيانها. الاختيارات: كل اختيار فكرة وحبكة مختلفة، لا تكشف عاقبته، وفيها جرأة أو أخلاق أو تضحية أو مقامرة. كل اختيار مهم يزرع عاقبة في seed تُحصد بعد 2 إلى 6 مشاهد، لا بالضرورة في المشهد التالي؛ العواقب القديمة تصلك مرقّمة فاحصدها وضع أرقام المحصودة في done. العدوى: إذا كانت الكارثة فيها عدوى (زومبي أو فيروس) وعضّ مصاب أو خدش لاعباً فضع infect:{"p":رقم,"part":"الساعد أو الكف أو الساق أو القدم أو الكتف أو الرقبة أو الرأس أو الصدر أو البطن"}؛ الأطراف يمكن بترها لينجو، أما الرأس والرقبة والصدر والبطن فتعني التحول وفقدانه. اجعل لحظة العضّ مأساوية، وإذا وصلتك حالة «أحداث فورية» (كبتر طرف) فاسردها بتأثير. system: جملة قصيرة (حتى 20 كلمة) بصوت «النظام» الغامض الذي يرافق الناجين كنافذة ألعاب في المانهوا، يعلّق عند القتل والخطر الكبير والأحداث الكبرى ويشجع أو يحذّر أو يعلن مهمة؛ اتركها فارغة إن لم تلزم. by: رقم اللاعب الذي قتل الأعداء في المشهد أو null. إذا ذُكر «عالم قصة خاص» فالتزم بعالمه وقواعده وقواه وشخصياته كما هي وواصل أحداثه وفق اختيارات اللاعبين. غير الأماكن والأحداث والجوائح، ومتكررش. المشهد رقم 16 فما فوق: ابدأ تمهد لنهاية، وحط end="win" أو "lose" أو "twist" لما القصة توصل نهاية طبيعية (النجاة، ملجأ، كشف سبب الجائحة، أو نهاية مأساوية). مفيش end قبل المشهد 10 إلا لو الكل مات.`;
+{"choices":["اختيار","اختيار","اختيار"],"fx":{"food":0,"water":0,"meds":0,"fuel":0,"ammo":0,"morale":0,"trust":0,"def":0},"kills":0,"hurt":{"0":0},"ally":null,"allyFx":[],"betray":null,"gone":[],"choicesOut":[],"choicesIn":[],"beat":"سطر واحد بيلخص اللي حصل","seed":null,"done":[],"by":null,"min":0,"ptrust":[],"sep":null,"meet":null,"loc":"","places":[],"infect":null,"cast":[],"system":"","timer":false,"boss":false,"split":false,"power":null,"status":[],"cure":[],"end":null}
+القواعد: من 3 إلى 4 اختيارات مختلفة جداً (مكان، مخاطرة، رحمة، تضحية). fx تغييرات صغيرة (من -3 إلى +3) مرتبطة بنتيجة اختيار الفريق السابق. hurt = أضرار على اللاعبين بالرقم (index) من 0 إلى 25. kills = عدد المصابين/الوحوش اللي الفريق قتلهم في المشهد. ally = اسم ناجي جديد انضم أو null. seed = عاقبة مؤجلة تحصل بعد 3 مشاهد أو أكتر (مثلا "الناجي اللي سبناه هيرجع") أو null. استخدم الـseeds القديمة وارجع لها. timer=true في لحظة خطر حرجة. boss=true لو وحش ضخم. power = قوة خارقة عشوائية بثمن لواحد من اللاعبين {"p":index,"text":".."} أو null. الدرجات: النرد من 1 إلى 20 بيحدد نجاح الاختيار السابق (أقل من 8 فشل، أكتر من 14 نجاح كبير) ومهارات اللاعبين بتحسنه. اجعل ميزة كل دور وعيبه وسمته تظهر في تصرفات الشخصية دون ذكرها صراحة. الاختيار الذي يناسب مهارة أحدهم ينجح أكثر، ويجوز التلميح إليه بين قوسين بكلمتين (مثل: يناسب سعيد). الخيار الذي يناسب المهارة ينجح أكثر. القوة الخارقة (power) يجب أن يذكر نصها الميزة والثمن معاً. إذا كان وضع اللعب «لاعب منفرد» فخاطب البطل وحده، ولا تذكر فريقاً ولا تصويتاً ولا خلافاً بين اللاعبين. مكان البداية دائماً عادي ومألوف (منزل أو حديقة أو شارع)، أما الأماكن الغريبة كالسفينة والسجن والمستشفى فتأتي لاحقاً في منتصف الرحلة لا في بدايتها. وجّه القصة نحو «هدف الرحلة» المذكور، وأنهِها به أو بما يقاربه. الحالات (status): لكل حالة عنصر {"p":رقم اللاعب,"name":"اسم قصير","type":"buff أو debuff أو injury","sk":{"قوة":1},"scenes":عدد المشاهد من 2 إلى 5 أو 0 للدائمة,"text":"وصف الأثر في جملة"}، ومفاتيح sk من: قوة، سرعة، تحمل، تخفي، علاج، صيد. في المشهد الأول امنح لاعباً أو اثنين حالة (قوة أو ضعف) تناسب بداية الكارثة. في منتصف الرحلة (المشاهد 6 إلى 10) قد يكتسب لاعب قوة أو حالة قوية. في المشاهد الأخيرة قد تُمنح دفعة أخيرة أو يظهر ضعف يعقّد النهاية. الإصابة (injury) تنتج عن الأضرار الكبيرة والاختيارات الخطرة وتضعف مهارة لاعب عدة مشاهد، وإذا عولجت فاستخدم cure:[{"p":رقم,"name":"اسم الحالة"}]. لا تزد عن حالتين جديدتين في المشهد، وراعِ الحالات الحالية للاعبين في السرد والنتائج. def هو تحصين الملجأ (من 0 إلى 10): يزيد بالتحصين والإصلاح وينقص بالهجمات. عندما يكون الفريق في الملجأ قد تقع أحداث داخله: هجوم أو تسلل أو مرض أو نزاع أو سرقة أو زائر غريب، وكلما قل التحصين زادت الخطورة. وإذا كانت الموارد قليلة (طعام أو ماء 2 فأقل) فاجعل الجو ضاغطاً ويلمّح إلى الحاجة للخروج. الانقسام: إذا ذُكر في الحالة أن مجموعة في الخارج ومجموعة في الملجأ فاسرد ما يحدث للمجموعتين معاً (ابدأ الجزء الأول بـ «في الخارج:» والثاني بـ «في الملجأ:»)، وقد يصيب الأذى أياً منهما، وما تجلبه البعثة يظهر في fx، ومهارات الخارجين تؤثر في نجاحها. ضع split:true إذا بقيت المجموعتان منفصلتين لمشهد آخر، وإلا ضع false لتعود المجموعتان معاً. قرارات الفريق قد تكون إجراءً مثل التحصين أو الراحة أو الاستطلاع فاجعل لها أثراً واقعياً. الناجون: قد يقابل الفريق ناجين؛ إذا أُنقذوا فأضفهم مرة واحدة في ally كائناً {"name":"","skill":"مهارة تفيد الفريق"}. للحلفاء ثقة من 0 إلى 10 تراها في الحالة: غيّرها بـ allyFx:[{"name":"","trust":1}] حسب معاملة الفريق لهم (مشاركة الطعام والحماية والصدق ترفعها، والتخلي والكذب والتضحية بهم تخفضها). الحليف ذو الثقة 2 فأقل قد يخون في أي وقت (سرقة المؤن، كشف الموقع، الهروب) فاستعمل betray:"اسمه" مع الأثر في fx وhurt، والثقة 8 فأكثر تجعله وفياً يضحي ويساعد. استعمل gone:["اسم"] لمن يموت أو يغادر، وأشرك الحلفاء بمهاراتهم في المشاهد. عند الانقسام (split:true) أرجع choicesOut لمن في الخارج وchoicesIn لمن في الملجأ (من 3 إلى 4 اختيارات لكل مجموعة، مختلفة وتناسب موقف كل منهما) واترك choices فارغة؛ الحدثان يجريان في الوقت نفسه ويؤثر قرار كل مجموعة في الأخرى وفي المستقبل. في المشهد التالي يصلك قرارا المجموعتين معاً فاسرد النتيجتين المتزامنتين وأثر كل قرار في الآخر، وأعد الجميع للاجتماع (split:false) خلال مشهدين أو ثلاثة. الدراما: لا يمر أكثر من ثلاثة مشاهد دون حدث غير متوقع (انقلاب، خيانة، كشف سر، ظهور مفاجئ، موت صادم، مطاردة). اجعل الأبطال ينجون من الموت بالكاد ثم يدفعون الثمن. الأعداء وحوش وبشر معاً: عصابات ومؤامرات وقادة مخادعون. الشخصيات: لكل بطل رابط عاطفي (صديق أو قريب أو حبيب يريد إنقاذه) مسجّل في «الشخصيات»؛ حرّك خيطه كل بضعة مشاهد بنتائج مفرحة أو موجعة. وأدخل شخصيات ثانوية مؤثرة: حبيب أو حبيبة يقع في حب أحد الأبطال أو يقع هو في حبه، عدو شخصي يكرهه ويتربص به ويحاول قتله، خائن، غامض. سجّلها وعدّلها في cast:[{"name":"","role":"رابط|حب|عدو|صديق|خائن|مجهول","note":"حالتها في جملة"}] وأضف gone:true لمن يخرج من القصة، وتابعها في المشاهد التالية بدل نسيانها. الاختيارات: كل اختيار فكرة وحبكة مختلفة، لا تكشف عاقبته، وفيها جرأة أو أخلاق أو تضحية أو مقامرة. كل اختيار مهم يزرع عاقبة في seed تُحصد بعد 2 إلى 6 مشاهد، لا بالضرورة في المشهد التالي؛ العواقب القديمة تصلك مرقّمة فاحصدها وضع أرقام المحصودة في done. العدوى: إذا كانت الكارثة فيها عدوى (زومبي أو فيروس) وعضّ مصاب أو خدش لاعباً فضع infect:{"p":رقم,"part":"الساعد أو الكف أو الساق أو القدم أو الكتف أو الرقبة أو الرأس أو الصدر أو البطن"}؛ الأطراف يمكن بترها لينجو، أما الرأس والرقبة والصدر والبطن فتعني التحول وفقدانه. اجعل لحظة العضّ مأساوية، وإذا وصلتك حالة «أحداث فورية» (كبتر طرف) فاسردها بتأثير. system: جملة قصيرة (حتى 20 كلمة) بصوت «النظام» الغامض الذي يرافق الناجين كنافذة ألعاب في المانهوا، يعلّق عند القتل والخطر الكبير والأحداث الكبرى ويشجع أو يحذّر أو يعلن مهمة؛ اتركها فارغة إن لم تلزم. by: رقم اللاعب الذي قتل الأعداء في المشهد أو null. إذا ذُكر «عالم قصة خاص» فالتزم بعالمه وقواعده وقواه وشخصياته كما هي وواصل أحداثه وفق اختيارات اللاعبين. الخطة الحرة: إذا كان اختيار الفريق «خطة كتبها اللاعبون بأنفسهم» فجرّبها بواقعية داخل القصة: صف خطواتها ونتيجتها الفعلية وما انقلب فيها وما لم يخطر ببالهم؛ للنرد والمهارات والمكان والموارد دور، والنجاح الكامل نادر، والخطة الذكية تُكافأ والساذجة تُعاقب بعاقبة مثيرة. القدرات: إذا استخدم لاعب «قدرته» فاسرد أثرها القتالي بوضوح. الهجوم على المصابين لتنظيف الطريق: اسرد معركة حقيقية بخسائر ومكاسب (kills وhurt وby). الجوع والعطش: تصلك قيمة جوع وعطش (من 100) لكل لاعب وهي تنقص تلقائياً، فلمّح إلى الجوع والعطش في السرد عند انخفاضهما ولا تعدّل الأرقام. «مأوى لعدة أيام»: مرّر أياماً واسرد الحياة في المأوى والجائحة خارجه بأحداث متصاعدة (جيران، هجمات، مرض، تسلل) وأثرها في الموارد والتحصين. الوقت: يصلك الوقت الحالي (اليوم والساعة). ضع في min عدد الدقائق التي مرّت في هذا المشهد (من 10 إلى 240 عادة، وأكثر من 1440 عند البقاء أياماً في مأوى)، وليكن السرد منسجماً مع الوقت: الضوء والظلام والبرد والحر وصمت الشوارع أو ضجيجها، وأخطار الليل أشد، ولا تذكر «المشهد» بل الساعة والزمن. الثقة بين اللاعبين: عدّلها في ptrust:[{"a":رقم,"b":رقم,"d":من -3 إلى 3}] حسب مواقفهم (كذب، تضحية، إنقاذ، أنانية، سر مكشوف)، وأظهر الثقة المنخفضة في الحوار والشك. الانفصال: إذا وصلك أن لاعباً «قرر سراً أن يترك الفريق» فارسم انفصاله بصدق وأرجع sep:{"who":[رقمه],"text":"مشهد المنفصل وحده من 150 إلى 220 كلمة","choices":[3 إلى 4 اختيارات]} مع مشهد المجموعة الباقية في النص الأساسي واختياراتها في choices. بعد الانفصال يصلك المسار النشط في الحالة: اسرد مشهد هذا المسار وحده، ولا تكشف لأي مسار ما يعرفه الآخر؛ لكل مسار أحداثه وأعداؤه ومفاجآته، وقرارات كل مسار تؤثر في الآخر بالأثر والزمن والمصادفة. الانفصال دائم ولا يعود الفريق واحداً أبداً: لكل مسار مشاهده وخاتمته، والزمن يمضي فيهما معاً. قد يلتقي المساران مصادفة أو بسبب قرارات كل منهما (حلفاء أو أعداء)، فأرجع meet:"ally" أو meet:"enemy" في المشهد الذي يلتقون فيه ثم يفترقون من جديد. لا تضع end إلا حين ينتهي مصير هذا المسار نفسه (نجاة أو موت أو نهاية)، وسيستمر الآخر. وكل اختيار يبدأ بـ«نرجع إلى» يعني عودة فعلية إلى ذلك المكان. الأماكن: سجّل المكان الحالي في loc وكل مكان مهم في places:[{"name":"","note":"حالته الآن"}] (نظّفتموه، فيه أكل، خطير، مأوى محصّن). وإذا طلب الفريق العودة إلى مكان سابق فأعدهم إليه فعلاً، وقدّر زمن الطريق في min، واسرد ما تغيّر في غيابهم (دخله أحد، نفد طعامه، انكسر تحصينه) وقد تفاجئهم. غير الأماكن والأحداث والجوائح، ومتكررش. المشهد رقم 16 فما فوق: ابدأ تمهد لنهاية، وحط end="win" أو "lose" أو "twist" لما القصة توصل نهاية طبيعية (النجاة، ملجأ، كشف سبب الجائحة، أو نهاية مأساوية). مفيش end قبل المشهد 10 إلا لو الكل مات.`;
 
 const PSYS='أنت راوي لعبة بقاء في نهاية العالم. اكتب بالعربية الفصحى السليمة مقدمة قصيرة (من 170 إلى 230 كلمة) تهيّئ البداية: تبدأ في المكان المذكور في يوم عادي هادئ، وتعرّف بالأبطال بأسمائهم وأدوارهم في لمحة، ثم تظهر أول علامات الكارثة المذكورة بحدة متصاعدة، وتنتهي بتحديد هدف الرحلة النهائي (مثل بلوغ ملاذ آمن أو كشف سر الكارثة أو لقاء ناجين) من غير كشف كيف تنتهي القصة. إذا كان اللاعب منفرداً فاكتب عن بطل وحيد. بعد المقدمة اكتب سطراً فيه @@@ فقط، ثم JSON واحداً: {"goal":"الهدف النهائي في جملة قصيرة","bonds":[{"p":رقم_البطل,"name":"اسم صديق أو قريب أو حبيب يريد هذا البطل إنقاذه أو العثور عليه","rel":"صلته به"}]} مع رابط عاطفي مؤثر واحد لكل بطل';
 let S=null, busy=false, tmr=null;
 const $=id=>document.getElementById(id);
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const DEF={gemini:'gemini-3.5-flash-lite',claude:'claude-haiku-5-5'};
-const cfg=()=>{const prov=localStorage.getItem('p')||'gemini';return{key:localStorage.getItem('k')||'',prov,model:localStorage.getItem('m')||DEF[prov]}};
-const save=()=>{try{localStorage.setItem('save',JSON.stringify(S))}catch(e){}};
+const cfg=()=>{const prov=store.getItem('p')||'gemini';return{key:store.getItem('k')||'',prov,model:store.getItem('m')||DEF[prov]}};
+const save=()=>{try{store.setItem('save',JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 
-const IC={virus:'<circle cx="12" cy="12" r="3"/><path d="M12 9V3M9.4 13.5 4.2 16.5M14.6 13.5l5.2 3"/>',sword:'<path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/>',medic:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',compass:'<circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/>',wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',smile:'<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>',food:'<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>',drop:'<path d="M12 2.7s-7 7.2-7 12a7 7 0 0 0 14 0c0-4.8-7-12-7-12z"/>',pill:'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/>',fuel:'<path d="M3 22h12M4 9h10M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0V10l-4-5"/>',ammo:'<path d="M9 22V9a3 3 0 0 1 6 0v13M9 18h6M9 14h6"/>',trust:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',check:'<path d="M20 6 9 17l-5-5"/>',star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.8 1.2 6.9-6.2-3.2-6.2 3.2L7 14.1 2 9.3l6.9-1z"/>',home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/>',exit:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',pack:'<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M8 21v-5h8v5M8 11h8"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/>',users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM20 17v5H6.5A2.5 2.5 0 0 1 4 19.5"/>',spark:'<path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',up:'<path d="M12 19V5M5 12l7-7 7 7"/>',down:'<path d="M12 5v14M19 12l-7 7-7-7"/>',bandage:'<path d="M4.9 19.1a5 5 0 0 1 0-7.1l7-7a5 5 0 0 1 7.1 7.1l-7 7a5 5 0 0 1-7.1 0zM9.5 9.5l5 5"/>',heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>',broken:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/><path d="m12 6-2 4 3 2-2 5"/>',skull:'<path d="M12 2a8 8 0 0 0-8 8c0 3 1.5 5 3 6v4h10v-4c1.5-1 3-3 3-6a8 8 0 0 0-8-8zM9 11h.01M15 11h.01M10 20v-2M14 20v-2"/>',chev:'<path d="m7 10 5-5 5 5M7 17l5-5 5 5"/>',play:'<path d="M6 4v16l14-8z"/>',go:'<path d="m15 18-6-6 6-6"/>',dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',gear:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'};
+const IC={lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',virus:'<circle cx="12" cy="12" r="3"/><path d="M12 9V3M9.4 13.5 4.2 16.5M14.6 13.5l5.2 3"/>',sword:'<path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/>',medic:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',compass:'<circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/>',wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',smile:'<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>',food:'<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>',drop:'<path d="M12 2.7s-7 7.2-7 12a7 7 0 0 0 14 0c0-4.8-7-12-7-12z"/>',pill:'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/>',fuel:'<path d="M3 22h12M4 9h10M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0V10l-4-5"/>',ammo:'<path d="M9 22V9a3 3 0 0 1 6 0v13M9 18h6M9 14h6"/>',trust:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',check:'<path d="M20 6 9 17l-5-5"/>',star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.8 1.2 6.9-6.2-3.2-6.2 3.2L7 14.1 2 9.3l6.9-1z"/>',home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/>',exit:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',pack:'<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M8 21v-5h8v5M8 11h8"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/>',users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM20 17v5H6.5A2.5 2.5 0 0 1 4 19.5"/>',spark:'<path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',up:'<path d="M12 19V5M5 12l7-7 7 7"/>',down:'<path d="M12 5v14M19 12l-7 7-7-7"/>',bandage:'<path d="M4.9 19.1a5 5 0 0 1 0-7.1l7-7a5 5 0 0 1 7.1 7.1l-7 7a5 5 0 0 1-7.1 0zM9.5 9.5l5 5"/>',heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>',broken:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/><path d="m12 6-2 4 3 2-2 5"/>',skull:'<path d="M12 2a8 8 0 0 0-8 8c0 3 1.5 5 3 6v4h10v-4c1.5-1 3-3 3-6a8 8 0 0 0-8-8zM9 11h.01M15 11h.01M10 20v-2M14 20v-2"/>',chev:'<path d="m7 10 5-5 5 5M7 17l5-5 5 5"/>',play:'<path d="M6 4v16l14-8z"/>',go:'<path d="m15 18-6-6 6-6"/>',dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',gear:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]||''}</svg>`;
-const IM={'☣':'virus','⚔':'sword','🩺':'medic','🧭':'compass','🔧':'wrench','🏹':'target','🙂':'smile','🍞':'food','💧':'drop','💊':'pill','⛽':'fuel','🔫':'ammo','🤝':'trust','⚠':'alert','✅':'check','🎯':'target','⭐':'star','🏠':'home','🚪':'exit','🎒':'pack','🛠':'shield','😴':'moon','🔍':'search','💾':'save','👥':'users','📖':'book','✨':'spark','⬆':'up','⬇':'down','🩹':'bandage','💚':'heart','💔':'broken','🗡':'sword','👋':'exit','🎉':'star','💀':'skull'};
-const RX=new RegExp('('+Object.keys(IM).join('|')+')\uFE0F?','g'),RT=new RegExp('('+Object.keys(IM).join('|')+')');
+const IM={'☣':'virus','⚔':'sword','🩺':'medic','🧭':'compass','🔧':'wrench','🏹':'target','🙂':'smile','🍞':'food','💧':'drop','💊':'pill','⛽':'fuel','🔫':'ammo','🤝':'trust','⚠':'alert','✅':'check','🎯':'target','⭐':'star','🏠':'home','🚪':'exit','🎒':'pack','🛠':'shield','😴':'moon','🔍':'search','💾':'save','👥':'users','📖':'book','✨':'spark','⬆':'up','⬇':'down','🩹':'bandage','💚':'heart','💔':'broken','🗡':'sword','👋':'exit','🎉':'star','💀':'skull','🔒':'lock','🏁':'flag'};
+const KS=Object.keys(IM).join('|'),RX=new RegExp('('+KS+')\uFE0F?|\\p{Extended_Pictographic}\uFE0F?','gu'),RT=new RegExp('('+KS+')|\\p{Extended_Pictographic}','u');
 const RI=r=>ic(IM[ROLES[r].e.replace(/\uFE0F/g,'')]);
 function icoify(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;
   while(n=w.nextNode())if(RT.test(n.data)&&!/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.parentNode.nodeName))L.push(n);
-  L.forEach(n=>{const t=document.createElement('template');t.innerHTML=esc(n.data).replace(RX,(m,k)=>ic(IM[k]));n.replaceWith(t.content)})}
+  L.forEach(n=>{const t=document.createElement('template');t.innerHTML=esc(n.data).replace(RX,(m,k)=>k?ic(IM[k]):'');n.replaceWith(t.content)})}
 new MutationObserver(ms=>ms.forEach(r=>r.addedNodes.forEach(x=>x.nodeType==1?icoify(x):x.nodeType==3&&x.parentNode&&icoify(x.parentNode)))).observe(document.body,{childList:true,subtree:true});
 
 function home(){
   clearInterval(tmr);
-  const has=localStorage.getItem('save');
+  const has=store.getItem('save');
   const mi=(c,i,t,d,f)=>`<button class="mi ${c}" onclick="${f}">${ic(i)}<span><b>${t}</b><small>${d}</small></span>${ic('go')}</button>`;
   $('app').innerHTML=`<div class="hero"><div class="emb">${ic('shield')}</div><h1>آخر الدنيا</h1><div class="mut">قصة بقاء جماعية · تليفون واحد · قرارات مشتركة</div></div><div class="tape"></div>
   <div class="menu">
   ${mi('main','play','رحلة جديدة','جهّز الفريق وانزل الميدان','setup()')}
-  ${has?mi('','pack','كمّل آخر رحلة','العودة إلى الميدان',"S=JSON.parse(localStorage.getItem('save'));game()"):''}
+  ${has?mi('','pack','كمّل آخر رحلة','العودة إلى الميدان',"S=JSON.parse(store.getItem('save'));game()"):''}
   ${mi('','dl','تحميل بكود حفظ','كمّل رحلة من جهاز تاني','loadCode()')}
   ${mi('','gear','الإعدادات','مزوّد الذكاء الاصطناعي ومفتاح API','settings()')}
   </div>`;
@@ -193,8 +203,10 @@ function settings(){
   <select id="p" onchange="$('m').value=DEF[this.value]"><option value="gemini" ${c.prov=='gemini'?'selected':''}>Gemini (مجاني)</option><option value="claude" ${c.prov=='claude'?'selected':''}>Claude (مدفوع)</option></select>
   <label>مفتاح API</label><input id="k" type="password" value="${esc(c.key)}" placeholder="الصق المفتاح هنا" dir="ltr">
   <label>الموديل</label><input id="m" value="${esc(c.model)}" dir="ltr">
-  <div style="height:10px"></div><button class="pri" onclick="localStorage.setItem('p',$('p').value);localStorage.setItem('k',$('k').value.trim());localStorage.setItem('m',$('m').value.trim()||DEF[$('p').value]);closeM()">حفظ</button></div></div>`;
+  <div style="height:10px"></div><button class="pri" onclick="store.setItem('p',$('p').value);store.setItem('k',$('k').value.trim());store.setItem('m',$('m').value.trim()||DEF[$('p').value]);closeM()">حفظ</button></div></div>`;
 }
+const hrs=m=>{const h=Math.max(1,Math.round(m/60));return h==1?'ساعة':h==2?'ساعتين':h<=10?h+' ساعات':h+' ساعة'};
+const tm=t=>{t=t==null?480:t;const d=Math.floor(t/1440)+1,H=Math.floor(t%1440/60),M=t%60,per=H<4?'ليلاً':H<6?'فجراً':H<12?'صباحاً':H<15?'ظهراً':H<18?'عصراً':H<20?'مساءً':'ليلاً';return 'اليوم '+d+' · '+(H%12||12)+':'+String(M).padStart(2,'0')+' '+per};
 const closeM=()=>$('modal').innerHTML='';
 
 /* قصص خارجية: كل عنصر {title,world,rules,start,goal,opening,characters:[{name,role,note}]} */
@@ -234,7 +246,7 @@ function begin(){
   S={sc:sc==='عشوائي'?rnd(Object.values(SCEN).filter(Boolean)):SCEN[sc],
     players:SP.map((q,i)=>{const R=ROLES[q.role],sk={};SK.forEach(k=>sk[k]=2);if(R.m){sk[R.m]+=2;sk[R.w]=Math.max(1,sk[R.w]-1)}else SK.forEach(k=>sk[k]++);
       return{name:q.name.trim()||(SP.length==1?'البطل':'لاعب '+(i+1)),role:q.role,hp:100,sk,pts:0,trait:rnd(Object.keys(TRAITS)),goal:rnd(GOALS),power:null}}),
-    res:{food:6,water:6,meds:3,fuel:3,ammo:4,morale:7,trust:7,def:3},split:null,cast:[],pack:null,note:'',kills:0,level:1,n:0,beats:[],seeds:[],allies:[],log:[],scene:null,over:null,place:(()=>{const v=$('st').value;return v==='عشوائي'?rnd(Object.values(START)):START[v]})(),prologue:'',goal:''};
+    res:{food:6,water:6,meds:3,fuel:3,ammo:4,morale:7,trust:7,def:3},t:(6+Math.floor(Math.random()*3))*60,split:null,cast:[],pack:null,note:'',kills:0,level:1,n:0,beats:[],seeds:[],allies:[],log:[],scene:null,over:null,place:(()=>{const v=$('st').value;return v==='عشوائي'?rnd(Object.values(START)):START[v]})(),prologue:'',goal:''};
   const pk=$('pk')&&PACKS[+$('pk').value-1];
   if(pk){S.pack=pk;S.sc=pk.world||S.sc;S.place=pk.start||S.place;S.cast=(pk.characters||[]).map(c=>({name:c.name,role:c.role||'مجهول',note:c.note||''}));
     if(pk.opening){S.prologue=pk.opening;S.goal=pk.goal||'مواصلة القصة';save();intro();return}}
@@ -245,14 +257,14 @@ function ctx(choice){
   const d20=1+Math.floor(Math.random()*20);
   return `الكارثة: ${S.sc}
 وضع اللعب: ${S.players.length==1?'لاعب منفرد':'جماعي ('+S.players.length+' لاعبين)'}
-الفريق: ${JSON.stringify(S.players.map((p,i)=>({i,اسم:p.name,دور:p.role,ميزة_الدور:ROLES[p.role].pro,عيب_الدور:ROLES[p.role].con,صحة:p.hp,مهارات:effSk(p),حالات:(p.fx||[]).map(f=>f.name+' - '+f.text+(f.left?' ('+f.left+' مشاهد)':' (دائمة)')),سمة:p.trait,ميزة_السمة:(TRAITS[p.trait]||{}).pro,عيب_السمة:(TRAITS[p.trait]||{}).con,قوة:p.power,هدف_سري:p.goal})))}
+الفريق: ${JSON.stringify(S.players.map((p,i)=>({i,اسم:p.name,دور:p.role,ميزة_الدور:ROLES[p.role].pro,عيب_الدور:ROLES[p.role].con,صحة:p.hp,مهارات:effSk(p),حالات:(p.fx||[]).map(f=>f.name+' - '+f.text+(f.left?' ('+f.left+' مشاهد)':' (دائمة)')),سمة:p.trait,ميزة_السمة:(TRAITS[p.trait]||{}).pro,عيب_السمة:(TRAITS[p.trait]||{}).con,قوة:p.power,جوع:p.hun??80,عطش:p.thr??80,هدف_سري:p.goal})))}
 الموارد: ${JSON.stringify(S.res)}
 الحلفاء: ${S.allies.length?JSON.stringify(S.allies.map(a=>({اسم:a.name,مهارة:a.skill,ثقة:a.trust,خطر_خيانة:a.trust<=2?'مرتفع':a.trust<=4?'متوسط':'منخفض'}))):'لا أحد'}
 مستوى الفريق: ${S.level}، قتلى: ${S.kills}
 ملخص الأحداث: ${S.beats.join(' | ')||'البداية'}
 عواقب مؤجلة (مرقمة): ${S.seeds.map((x,i)=>(i+1)+') '+x).slice(-7).join(' | ')||'لا شيء'}
 الشخصيات: ${JSON.stringify(S.cast||[])}
-مصابون بالعدوى: ${S.players.filter(p=>p.inf&&p.hp>0).map(p=>p.name+' في '+p.inf.part+' (باقي '+p.inf.left+')').join('، ')||'لا أحد'}
+مصابون بالعدوى: ${S.players.filter(p=>p.inf&&p.hp>0).map(p=>p.name+' في '+p.inf.part+' (ينتشر خلال '+hrs((p.inf.until||S.t+240)-S.t)+')').join('، ')||'لا أحد'}
 متحوّلون: ${S.players.filter(p=>p.turned).map(p=>p.name).join('، ')||'لا أحد'}
 أحداث فورية: ${S.note||'لا شيء'}${S.pack?'\nعالم قصة خاص (التزم به): '+JSON.stringify(S.pack):''}
 الانقسام: ${S.split?'في الخارج (يبحثون عن '+S.split.tg+'): '+S.split.out.map(i=>S.players[i].name).join('، ')+' | في الملجأ: '+(S.split.inside.map(i=>S.players[i].name).join('، ')||'لا أحد'):'لا يوجد، الجميع معاً'}
@@ -261,6 +273,10 @@ function ctx(choice){
 اختيار الفريق: ${choice||'—'}
 نرد: ${d20}
 عنصر عشوائي: ${S.n==0?'بداية الكارثة في '+S.place:rnd(EVENTS)+' في '+rnd(PLACES)}
+الثقة بين اللاعبين: ${S.players.length>1?S.players.flatMap((a,i)=>S.players.slice(i+1).map((b,k)=>a.name+' و'+b.name+': '+ptv(i,i+1+k)+'/10')).join(' | '):'—'}
+المكان الحالي: ${S.loc||S.place}، أماكن زرتموها: ${JSON.stringify(S.places||[])}
+الانفصال: ${S.sep?'الفريق منقسم: المنفصل ('+sepNames(S.sep.who)+') والمجموعة الرئيسية ('+sepNames(mainIds())+'). المسار النشط الآن: '+(S.sep.turn==='solo'?'المنفصل':'الرئيسية')+'. آخر ما فعله المسار الآخر: '+(S.sep.last[S.sep.turn==='solo'?'main':'solo']||'غير معروف')+'. اسرد مشهد المسار النشط وحده.':'لا يوجد'}
+الوقت الآن: ${tm(S.t)}
 رقم المشهد: ${S.n+1}`;
 }
 
@@ -320,9 +336,9 @@ function parseScene(full){
 async function next(choice){
   if(busy)return;busy=true;clearInterval(tmr);
   const prev=S.scene, prevCh=choice;
-  $('app').innerHTML=`<h2>المشهد ${S.n+1}</h2><div class="tape"></div><div class="story" id="st"><span class="mut">الراوي بيجهز المشهد...</span></div>`;
+  $('app').innerHTML=`<h2>${tm(S.t)}</h2><div class="tape"></div><div class="story" id="st"><span class="mut">الراوي بيجهز المشهد...</span></div>`;
   try{
-    const cx=ctx(choice);S.note='';let text='',j=null,full='';
+    const T=S.sep?S.sep.turn:null;const cx=ctx(choice);S.note='';S.dk=/عدة أيام/.test(choice||'')?2.5:1;let text='',j=null,full='';
     for(let a=0;a<3&&!j;a++){
       full=await stream(SYS,cx,2600,t=>{const i=t.indexOf('@@@');$('st').textContent=(i<0?t:t.slice(0,i)).replace(/```\w*/g,'').trim()});
       try{const r=parseScene(full);text=r.text;j=r.j}catch(e){if(a==2)throw new Error('رد غير مفهوم من الذكاء الاصطناعي. بداية الرد: '+(full.slice(0,120)||'(فاضي)'))}
@@ -332,9 +348,19 @@ async function next(choice){
     const co=(j.choicesOut||[]).slice(0,4),ci=(j.choicesIn||[]).slice(0,4);
     let dual=null;if(S.split&&co.length>=2&&ci.length>=2)dual={out:co,inn:ci};else S.split=null;
     let ch=(j.choices||[]).slice(0,4);if(ch.length<2)ch=co.concat(ci).slice(0,4);
-    S.n++;S.scene={text,choices:ch,dual,timer:!!j.timer,boss:!!j.boss};
+    if(!dual&&!S.split&&(S.places||[]).length){const tg=[...S.places].reverse().find(x=>x.name!==S.loc);if(tg)ch=ch.slice(0,3).concat('نرجع إلى '+tg.name)}
+    const sc={text,choices:ch,dual,timer:!!j.timer,boss:!!j.boss};S.n++;S.scene=sc;
+    if(j.sep&&!S.sep)mkSep(j,sc);
+    else if(S.sep){S.sep.scenes[T]=sc;S.sep.last[T]=j.beat||'';
+      if(j.meet)S.news.push('⚔ التقى المساران من جديد ('+(j.meet==='ally'?'كحلفاء':'كأعداء')+')');
+      if(j.end){S.sep.done=S.sep.done||{};S.sep.done[T]=j.end}
+      const dn=S.sep.done||{};
+      if(sepDead())endSep('انتهى أحد المسارين');
+      else if(dn.main&&dn.solo){endSep('انتهى المساران');S._ov=dn.main==='lose'&&dn.solo==='lose'?'lose':(dn.main==='win'||dn.solo==='win')?'win':'twist'}
+      else{let nt=T==='main'?'solo':'main';if(dn[nt]&&!dn[T])nt=T;
+        if(nt!==T){S.sep.turn=nt;swapRes();S.scene=S.sep.scenes[nt];S.hand=true}}}
     if(prevCh)S.log.push({c:prevCh});
-    S.over=j.end||null;
+    S.over=S.sep?null:(S._ov||j.end||null);S._ov=null;
     if(S.players.every(p=>p.hp<=0))S.over='lose';
     save();busy=false;game();
   }catch(e){busy=false;S.scene=prev;
@@ -344,13 +370,14 @@ async function next(choice){
 function apply(j){
   const fx=j.fx||{};for(const k in S.res)S.res[k]=Math.max(0,Math.min(10,S.res[k]+(+fx[k]||0)));
   for(const k in (j.hurt||{})){const p=S.players[+k];if(p)p.hp=Math.max(0,p.hp-(+j.hurt[k]||0))}
-  if(S.res.food==0||S.res.water==0)S.players.forEach(p=>p.hp=Math.max(0,p.hp-6));
+  let dm=+j.min>0?Math.min(2880,Math.max(5,+j.min)):60;if(S.sep)dm=Math.max(5,Math.round(dm/2));S.t=(S.t==null?480:S.t)+dm;const dk=Math.max(.4,Math.min(6,dm/120)),n0=(S.open||[]).length;S.players.forEach(p=>{if(p.hp<=0)return;p.hun=Math.max(0,(p.hun??80)-Math.round(10*dk));p.thr=Math.max(0,(p.thr??80)-Math.round(12*dk));if(p.hun<=0||p.thr<=0)p.hp=Math.max(0,p.hp-8)});
+  S.open=(S.open||[]).filter(x=>x.exp>S.t);S.spoil=n0-S.open.length;
   const kl=Math.max(0,+j.kills||0);S.kills+=kl;S.sysq=[];
   if(kl){const by=S.players[+j.by];let t;if(by&&by.hp>0&&j.by!=null){by.pts+=kl;t=by.name+': +'+kl+' نقاط تطوير'}else{S.players.forEach(q=>{if(q.hp>0)q.pts++});t='+1 نقطة تطوير لكل ناجٍ'}S.sysq.push('تم القضاء على '+kl+' من الأعداء.',t)}
   if(j.beat)S.beats.push(j.beat);const dn=(j.done||[]).map(x=>+x-1);if(dn.length)S.seeds=S.seeds.filter((x,i)=>!dn.includes(i));if(j.seed)S.seeds.push(j.seed);
   if(j.power&&S.players[j.power.p]&&!S.players[j.power.p].power)S.players[j.power.p].power=j.power.text;
   while(S.kills>=S.level*5){S.level++;S.players.forEach(p=>p.pts+=3);S.lvlUp=true;S.sysq.push('ارتفع مستوى الفريق إلى '+S.level+'. +3 نقاط تطوير لكل لاعب.')}
-  applyFx(j);applyInfect(j);applyCast(j);
+  applyFx(j);applyInfect(j);applyCast(j);applyWorld(j);
 }
 const INJ=[{name:'جرح في الساق',sk:{سرعة:-1},text:'يعرج ويتباطأ.'},{name:'ذراع مصابة',sk:{قوة:-1},text:'تضعف قبضته.'},{name:'إرهاق شديد',sk:{تحمل:-1},text:'يتعب سريعاً.'},{name:'ارتجاج خفيف',sk:{تخفي:-1,صيد:-1},text:'يفقد تركيزه.'}];
 const FXI={buff:'⬆️',debuff:'⬇️',injury:'🩹'};
@@ -378,23 +405,57 @@ function applyCast(j){S.cast=S.cast||[];(j.cast||[]).slice(0,4).forEach(x=>{if(!
   if(x.gone){if(k>=0)S.cast.splice(k,1);return}
   const o={name:n,role:String(x.role||(k>=0?S.cast[k].role:'مجهول')).slice(0,12),note:String(x.note||(k>=0?S.cast[k].note:'')).slice(0,140)};if(k>=0)S.cast[k]=o;else S.cast.push(o)});
   if(S.cast.length>14)S.cast.splice(0,S.cast.length-14);
-  if(j.system)S.sysq.push(String(j.system).slice(0,200))}
+  if(j.system)S.sysq.push(String(j.system).slice(0,200));
+  if(S.spoil){S.sysq.push('فسدت حصة طعام مفتوحة.');S.spoil=0}
+  S.players.forEach(p=>{if(p.hp>0&&((p.thr??80)<=20||(p.hun??80)<=20))S.sysq.push('تحذير: '+p.name+' يعاني من '+((p.thr??80)<=20?'العطش':'الجوع')+'. افتح الحقيبة.')})}
 function applyInfect(j){
-  S.players.forEach(p=>{if(p.inf&&p.hp>0){p.inf.left--;if(p.inf.left<=0){p.hp=0;p.turned=p.inf.part;S.news.push('🩹 '+p.name+' تحوّل بعد أن أكلت العدوى جسده...');S.sysq.push('فُقد الاتصال بـ '+p.name+'.');p.inf=null}}});
+  S.players.forEach(p=>{if(p.inf&&p.hp>0){if(S.t>=(p.inf.until||0)){p.hp=0;p.turned=p.inf.part;S.news.push('🩹 '+p.name+' تحوّل بعد أن أكلت العدوى جسده...');S.sysq.push('فُقد الاتصال بـ '+p.name+'.');p.inf=null}}});
   const x=j.infect;if(!x)return;const p=S.players[+x.p];if(!p||p.hp<=0||p.inf)return;const part=String(x.part||'الساعد').slice(0,12);
   if(/رأس|رقبة|عنق|صدر|بطن|قلب|وجه/.test(part)){p.hp=0;p.turned=part;S.news.push('☣ '+p.name+' أُصيب في '+part+'، ولا مجال للنجاة... تحوّل.');S.sysq.push('إصابة قاتلة في '+part+'. لا علاج.')}
-  else{p.inf={part,left:2};S.news.push('☣ '+p.name+' أُصيب بالعدوى في '+part);S.sysq.push('تحذير: عدوى في '+part+' عند '+p.name+'. اتخذوا القرار قبل أن تنتشر.')}}
-function infBox(){return S.players.map((p,i)=>p.inf&&p.hp>0?`<div class="box inf"><b>☣ ${esc(p.name)}: عدوى في ${esc(p.inf.part)}</b><div class="mut">العدوى تزحف... باقي ${p.inf.left} ${p.inf.left>1?'مشاهد':'مشهد'} قبل أن يتحوّل.</div><div class="row" style="margin-top:8px"><button class="pri" onclick="amp(${i})">بتر ${esc(p.inf.part)}</button><button ${S.res.meds<1||p.inf.left>=3?'disabled':''} onclick="delayInf(${i})">💊 مضاد مؤقت</button></div></div>`:'').join('')}
+  else{p.inf={part,until:S.t+240};S.news.push('☣ '+p.name+' أُصيب بالعدوى في '+part);S.sysq.push('تحذير: عدوى في '+part+' عند '+p.name+'. اتخذوا القرار قبل أن تنتشر.')}}
+function infBox(){return S.players.map((p,i)=>p.inf&&p.hp>0?`<div class="box inf"><b>☣ ${esc(p.name)}: عدوى في ${esc(p.inf.part)}</b><div class="mut">العدوى تزحف... ينتشر ويتحوّل خلال ${hrs((p.inf.until||S.t+240)-S.t)}.</div><div class="row" style="margin-top:8px"><button class="pri" onclick="amp(${i})">بتر ${esc(p.inf.part)}</button><button ${S.res.meds<1||(p.inf.until||0)-S.t>=600?'disabled':''} onclick="delayInf(${i})">💊 مضاد مؤقت</button></div></div>`:'').join('')}
 function amp(i){const p=S.players[i],part=p.inf.part,leg=/ساق|قدم|فخذ|ركبة/.test(part);
   p.fx=(p.fx||[]).concat([{name:'بتر '+part,type:'injury',sk:leg?{سرعة:-2,تحمل:-1}:{قوة:-2,صيد:-1},left:null,text:'فقد '+part+' لينجو من العدوى.'}]);
   p.hp=Math.max(1,p.hp-30);p.inf=null;S.note=(S.note||'')+p.name+' بتر '+part+' بنفسه ليوقف العدوى. ';S.news=['🩹 '+p.name+' بتر '+part+' ونجا من التحول'];save();game()}
-function delayInf(i){const p=S.players[i];if(S.res.meds<1)return;S.res.meds--;p.inf.left++;p.hp=Math.max(1,p.hp-5);S.note=(S.note||'')+p.name+' حقن مضاداً مؤقتاً يؤخر العدوى. ';S.news=['💊 تأخرت العدوى عند '+p.name];save();game()}
+function delayInf(i){const p=S.players[i];if(S.res.meds<1)return;S.res.meds--;p.inf.until=(p.inf.until||S.t+240)+180;p.hp=Math.max(1,p.hp-5);S.note=(S.note||'')+p.name+' حقن مضاداً مؤقتاً يؤخر العدوى. ';S.news=['💊 تأخرت العدوى عند '+p.name];save();game()}
 function sysPop(){let e=$('sysp');if(!e){e=document.createElement('div');e.id='sysp';document.body.appendChild(e)}
   const q=S.sysq||[];S.sysq=[];if(!q.length){e.innerHTML='';return}
   const pts=S.players.some(p=>p.pts>0&&p.hp>0);
   e.innerHTML=`<div class="sysw" onclick="if(event.target==this)$('sysp').innerHTML=''"><div class="sysp"><div class="sysh">[ النظام ]</div>${q.map(x=>`<div class="sysl">${esc(x)}</div>`).join('')}<div class="row" style="margin-top:10px">${pts?`<button class="sysb" onclick="$('sysp').innerHTML='';upg()">وزّع النقاط</button>`:''}<button class="sysb" onclick="$('sysp').innerHTML=''">تم</button></div></div></div>`}
 function castBox(){const c=S.cast||[];if(!c.length)return '';
   return `<div class="box"><h3>${ic('users')} شخصيات القصة</h3>${c.map(x=>`<div style="margin:8px 0"><b>${esc(x.name)}</b> <span class="mut">· ${esc(x.role)}</span><div class="mut">${esc(x.note||'')}</div></div>`).join('')}</div>`}
+const SUP=['food','water','meds','fuel','ammo'];
+const ptk=(a,b)=>a<b?a+'-'+b:b+'-'+a,ptv=(a,b)=>(S.pt&&S.pt[ptk(a,b)])??6;
+const soloT=()=>S.sep&&S.sep.turn==='solo'&&S.sep.who.length==1;
+const sepNames=a=>a.map(i=>S.players[i].name).join('، ');
+const mainIds=()=>S.players.map((p,i)=>i).filter(i=>S.players[i].hp>0&&!S.sep.who.includes(i));
+function swapRes(){SUP.forEach(k=>{const t=S.res[k];S.res[k]=S.sep.res2[k];S.sep.res2[k]=t})}
+function sepDead(){const al=S.players.map((p,i)=>p.hp>0?i:-1).filter(i=>i>=0);return !al.some(i=>S.sep.who.includes(i))||!al.some(i=>!S.sep.who.includes(i))}
+function endSep(m){SUP.forEach(k=>S.res[k]=Math.min(10,S.res[k]+S.sep.res2[k]));S.sep=null;S.news=(S.news||[]).concat(['🏁 '+(m||'انتهى الانفصال')])}
+function mkSep(j,sc){const al=S.players.filter(p=>p.hp>0).length,who=(j.sep.who||[]).map(Number).filter(i=>S.players[i]&&S.players[i].hp>0);
+  if(!who.length||who.length>=al)return;S.split=null;
+  const r2={};SUP.forEach(k=>{r2[k]=Math.floor(S.res[k]/2);S.res[k]-=r2[k]});const ch=(j.sep.choices||[]).slice(0,4);
+  S.sep={who,res2:r2,turn:'main',scenes:{main:sc,solo:{text:String(j.sep.text||'').trim()||'تمضي وحدك في الطريق...',choices:ch.length>=2?ch:['أواصل السير بحذر','أبحث عن مأوى','أراقب من بعيد'],dual:null,timer:false,boss:false}},last:{}};
+  S.news=(S.news||[]).concat(['🗡 '+sepNames(who)+' ترك الفريق!'])}
+function handoff(){const t=S.sep.turn,names=sepNames(t==='solo'?S.sep.who:mainIds());
+  $('app').innerHTML=`<div class="hero"><div class="emb">${ic('users')}</div><h2>سلّموا التليفون</h2><div class="mut">الدور الآن لـ</div><h1>${esc(names)}</h1><div class="mut">${t==='solo'?'مسارك منفصل ولا يراه أحد غيرك.':'مسار المجموعة.'}</div></div><div class="tape"></div><button class="pri" onclick="game()">أنا جاهز</button>`}
+function sepBox(){return S.sep?`<div class="box" style="border-color:#5ec8ff"><b>${S.sep.turn==='solo'?'مسارك المنفصل':'مسار المجموعة'}</b> <span class="mut">${esc(sepNames(S.sep.turn==='solo'?S.sep.who:mainIds()))}</span><div class="mut">الطرف الآخر يتحرك في نفس الوقت، وقراراته تؤثر عليكم.</div></div>`:''}
+function applyWorld(j){S.pt=S.pt||{};(j.ptrust||[]).slice(0,6).forEach(x=>{const a=+x.a,b=+x.b;if(a==b||!S.players[a]||!S.players[b])return;const d=Math.max(-3,Math.min(3,+x.d||0));S.pt[ptk(a,b)]=Math.max(0,Math.min(10,ptv(a,b)+d));if(d)S.news.push((d>0?'💚 ارتفعت ثقة ':'💔 انخفضت ثقة ')+S.players[a].name+' و'+S.players[b].name)});
+  if(j.loc)S.loc=String(j.loc).slice(0,40);S.places=S.places||[];
+  (j.places||[]).slice(0,3).forEach(x=>{if(!x||!x.name)return;const n=String(x.name).slice(0,30),k=S.places.findIndex(c=>c.name===n),o={name:n,note:String(x.note||'').slice(0,100)};if(k>=0)S.places[k]=o;else S.places.push(o)});
+  if(S.places.length>12)S.places.splice(0,S.places.length-12)}
+function trustBox(){const n=S.players.length;if(n<2)return '';let r='';for(let a=0;a<n;a++)for(let b=a+1;b<n;b++){const v=ptv(a,b);r+=`<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span>${esc(S.players[a].name)} ↔ ${esc(S.players[b].name)}</span><span class="mut">${v}/10</span></div><div class="bar"><i style="width:${v*10}%;background:${v<=3?'var(--red)':v<=5?'var(--hz)':'var(--grn)'}"></i></div></div>`}
+  return `<div class="box"><h3>${ic('trust')} الثقة بين اللاعبين</h3>${r}</div>`}
+function placesBox(){const c=S.places||[];if(!c.length&&!S.loc)return '';return `<div class="box"><h3>${ic('home')} الأماكن</h3>${S.loc?`<div class="mut">أنتم الآن: ${esc(S.loc)}</div>`:''}${c.map((x,k)=>`<div style="margin:8px 0"><b>${esc(x.name)}</b><div class="mut">${esc(x.note)}</div>${x.name!==S.loc?`<button style="margin-top:4px" onclick="retPlace(${k})">ارجعوا إلى هنا</button>`:''}</div>`).join('')}<div class="mut">الاختيار الرابع في كل مشهد يرجّعكم لآخر مكان زرتوه.</div></div>`}
+function retPlace(k){const p=(S.places||[])[k];if(!p)return;closeM();pickCustom('نرجع إلى '+p.name)}
+const lowTrust=i=>S.players.some((q,k)=>k!=i&&q.hp>0&&ptv(i,k)<=3);
+function privAsk(){const al=S.players.map((p,i)=>i).filter(i=>S.players[i].hp>0);
+  $('modal').innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div><h2>شاشة خاصة</h2><p>مين هياخد التليفون لوحده؟</p>${al.map(i=>`<button class="ch" onclick="priv(${i})">${esc(S.players[i].name)}</button>`).join('')}<button onclick="closeM()">إلغاء</button></div></div>`}
+function priv(i){closeM();$('app').innerHTML=`<div class="hero"><div class="emb">${ic('users')}</div><h2>سلّموا التليفون</h2><div class="mut">لـ</div><h1>${esc(S.players[i].name)}</h1><div class="mut">وحده. الباقون يبعدوا عيونهم.</div></div><div class="tape"></div><button class="pri" onclick="privShow(${i})">أنا ${esc(S.players[i].name)}</button>`}
+function privShow(i){const low=lowTrust(i);
+  $('app').innerHTML=`<h2>${ic('lock')||''} شاشة ${esc(S.players[i].name)} الخاصة</h2><div class="tape"></div>${low?`<div class="box" style="border-color:var(--red)"><p>ثقتك في بعض أفراد الفريق وصلت لحد الخطر. عندك خيار سري لا يعرفه أحد.</p><button class="con" style="width:100%" onclick="leaveAsk(${i})">${ic('exit')} اترك الفريق</button></div>`:`<div class="box"><p class="mut">مفيش قرارات سرية متاحة ليك دلوقتي.</p></div>`}<button class="pri" onclick="game()">رجوع (سلّم التليفون)</button>`}
+function leaveAsk(i){$('modal').innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div><h2>قرار سري</h2><p>ستترك الفريق وتمضي بمفردك حاملاً نصيبك من المؤن. الباقون سيكتشفون ذلك، وسيصبح لك مسارك وقراراتك. القصة هتنقسم لمسارين دايمين ومفيش رجوع.</p><button class="pri" onclick="leave(${i})">اتركهم</button><button class="ch" onclick="closeM()">تراجع</button></div></div>`}
+function leave(i){closeM();next(`قرر ${S.players[i].name} سراً أن يترك الفريق ويمضي بمفرده حاملاً نصيبه من المؤن`)}
 function applyAllies(j){
   if(j.ally){const a=typeof j.ally==='string'?{name:j.ally}:j.ally;
     if(a&&a.name&&!S.allies.some(x=>x.name===a.name)){S.allies.push({name:String(a.name).slice(0,24),skill:String(a.skill||'').slice(0,40),trust:5});S.news.push('🤝 انضم إلى الفريق: '+a.name)}}
@@ -404,25 +465,26 @@ function applyAllies(j){
   (j.gone||[]).forEach(n=>{const k=S.allies.findIndex(x=>x.name===n);if(k>=0){S.allies.splice(k,1);S.news.push('👋 غادر '+n)}});
 }
 function fxHtml(p,full){return (p.fx||[]).map(f=>{const m=Object.keys(f.sk||{}).map(k=>k+(f.sk[k]>0?' +':' ')+f.sk[k]).join('، ');
-  return `<div class="${f.type==='buff'?'pro':'con'}">${FXI[f.type]||''} <b>${esc(f.name)}</b>${m?' ('+m+')':''}${full&&f.text?'<br>'+esc(f.text):''} <span class="mut">${f.left?'· '+f.left+' مشاهد':'· دائمة'}</span></div>`}).join('')}
+  return `<div class="${f.type==='buff'?'pro':'con'}">${FXI[f.type]||''} <b>${esc(f.name)}</b>${m?' ('+m+')':''}${full&&f.text?'<br>'+esc(f.text):''} <span class="mut">${f.left?'· '+(f.left*2)+' ساعات':'· دائمة'}</span></div>`}).join('')}
 function newsBox(){return S.news&&S.news.length?`<div class="box" style="border-color:var(--hz)"><b>تغيّرت الحالات:</b><br>${S.news.map(esc).join('<br>')}</div>`:''}
 function defLine(){return `<div class="mut" style="margin-top:8px">🏠 تحصين الملجأ: <b>${S.res.def}/10</b>${S.res.def<=2?' ⚠️ ضعيف':''}</div>${S.allies.length?'<div class="mut">🤝 '+S.allies.map(a=>esc(a.name)+' '+a.trust+'/10'+(a.trust<=2?' ⚠️':'')).join(' · ')+'</div>':''}`}
 function splitBox(){if(!S.split)return '';const n=a=>a.map(i=>S.players[i]?S.players[i].name:'').join('، ')||'لا أحد';
   return `<div class="box" style="border-color:var(--hz)">🚪 <b>في الخارج</b> (${esc(S.split.tg)}): ${esc(n(S.split.out))}<br>🏠 <b>في الملجأ:</b> ${esc(n(S.split.inside))}</div>`}
-const ACTS={bond:'قرر الفريق مشاركة طعامه وحمايته مع الحلفاء لكسب ثقتهم',fort:'قرر الفريق تحصين الملجأ وإصلاح الأبواب والنوافذ',rest:'قرر الفريق الراحة في الملجأ لتعافي الجميع',scout:'قرر الفريق استطلاع المحيط بحذر من مكان آمن'};
+const ACTS={bond:'قرر الفريق مشاركة طعامه وحمايته مع الحلفاء لكسب ثقتهم',fort:'قرر الفريق تحصين الملجأ وإصلاح الأبواب والنوافذ',rest:'قرر الفريق الراحة في الملجأ لتعافي الجميع',scout:'قرر الفريق استطلاع المحيط بحذر من مكان آمن',clear:'قرر الفريق مهاجمة المصابين القريبين لتنظيف الطريق وفتح ممر آمن',camp:'قرر الفريق الاحتماء في هذا المكان عدة أيام واتخاذه مأوى، مع تمرير الأيام'};
 function acts(){const urgent=S.res.food<=2||S.res.water<=2,alone=S.players.filter(p=>p.hp>0).length==1;
-  return `<div class="mut" style="margin:14px 0 6px">إجراءات الفريق</div><div class="row acts">
+  return planBox()+`<div class="mut" style="margin:14px 0 6px">إجراءات الفريق</div><div class="row acts">
   <button onclick="expo()">${alone?'🚪 اخرج للتموين':'🎒 بعثة تموين'}${urgent?' ⚠️':''}</button>
   <button onclick="pickCustom(ACTS.fort)">🛠️ تحصين الملجأ</button>
   <button onclick="pickCustom(ACTS.rest)">😴 راحة وتعافٍ</button>
-  <button onclick="pickCustom(ACTS.scout)">🔍 استطلاع</button>${S.allies.length?'<button onclick="pickCustom(ACTS.bond)">🤝 اكسبوا ثقة الحلفاء</button>':''}</div>`}
-let PEND=null,PSPLIT=null,EX=null;
-function goPend(){if(PSPLIT){S.split=PSPLIT;PSPLIT=null}next(PEND)}
-function pickCustom(t,sp){PEND=t;PSPLIT=sp||null;
-  if(S.players.length==1){goPend();return}
+  <button onclick="pickCustom(ACTS.scout)">🔍 استطلاع</button><button onclick="pickCustom(ACTS.clear)">⚔️ هاجموا المصابين</button><button onclick="pickCustom(ACTS.camp)">🏠 مأوى لعدة أيام</button>${S.allies.length?'<button onclick="pickCustom(ACTS.bond)">🤝 اكسبوا ثقة الحلفاء</button>':''}</div>`}
+let PCB=null,PEND=null,PSPLIT=null,EX=null;
+function goPend(){if(PCB){PCB();PCB=null}if(PSPLIT){S.split=PSPLIT;PSPLIT=null}next(PEND)}
+function pickCustom(t,sp,cb){PEND=t;PSPLIT=sp||null;PCB=cb||null;
+  if(S.players.length==1||soloT()){goPend();return}
   document.querySelectorAll('.ch').forEach(b=>b.classList.remove('sel'));
   $('cf').innerHTML=`<div class="box"><b>${esc(t)}</b><br>كل اللاعبين موافقين؟<div class="row" style="margin-top:8px"><button class="pri" onclick="goPend()">كلنا موافقين ✓</button><button onclick="PSPLIT=null;$('cf').innerHTML=''">لسه بنتناقش</button></div></div>`}
-function expo(){const alive=S.players.map((p,i)=>i).filter(i=>S.players[i].hp>0);if(!alive.length)return;
+function expo(){if(S.sep){alert('لا بعثات أثناء الانفصال');return}
+ const alive=S.players.map((p,i)=>i).filter(i=>S.players[i].hp>0);if(!alive.length)return;
   EX={out:alive.length==1?[alive[0]]:[],tg:S.res.food<=S.res.water?'الطعام':'الماء'};drawEx()}
 function drawEx(){const alive=S.players.map((p,i)=>i).filter(i=>S.players[i].hp>0),solo=alive.length==1;
   $('modal').innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div><h2>${solo?'الخروج للتموين':'بعثة تموين'}</h2>
@@ -459,26 +521,27 @@ function heal(i){const p=S.players[i];if(!p||p.hp<=0)return;
 let picked=null;
 function game(){
   clearInterval(tmr);picked=null;DP={o:null,i:null};
+  if(S.hand){S.hand=false;handoff();return}
   if(!S.scene){S&&S.prologue?intro():home();return}
-  if(S.res.def==null)S.res.def=3;
+  if(S.res.def==null)S.res.def=3;if(S.t==null)S.t=480;
   S.allies=(S.allies||[]).map(a=>typeof a==='string'?{name:a,skill:'',trust:5}:a);
   const sc=S.scene,pts=S.players.reduce((a,p)=>a+p.pts,0);
   const lv=S.lvlUp?`<div class="box" style="border-color:var(--hz)">⭐ الفريق وصل المستوى ${S.level}! كل لاعب أخد 3 نقاط تطوير.</div>`:'';S.lvlUp=false;
   $('app').innerHTML=`
-  <div class="top"><span>${ic('shield')} آخر الدنيا</span><span class="mut">مشهد ${S.n} · مستوى ${S.level}</span></div>
+  <div class="top"><span>${ic('shield')} آخر الدنيا</span><span class="mut">${tm(S.t)} · مستوى ${S.level}</span></div>
   <div class="res">${Object.keys(RES).map(k=>`<div class="${S.res[k]<=1?'low':''}">${RES[k].split(' ')[0]}<b>${S.res[k]}</b><span class="mut">${RES[k].split(' ')[1]}</span></div>`).join('')}<div>⚔️<b>${S.kills}</b><span class="mut">قتلى</span></div></div>
-  ${defLine()}<div class="pl" style="margin-top:8px">${S.players.map(p=>`<div class="${p.hp<=0?'dead':''}"><b>${ROLES[p.role].e} ${esc(p.name)}</b><br><span class="mut">${p.role}</span> ${(p.fx||[]).map(f=>FXI[f.type]||'').join('')}<div class="bar"><i style="width:${p.hp}%;background:${p.hp>60?'var(--grn)':p.hp>30?'var(--hz)':'var(--red)'}"></i></div>${p.hp<=0?(p.turned?'تحوّل':'مات'):(p.inf?'☣ عدوى':'')}${p.power?'<br>✨ '+esc(p.power):''}</div>`).join('')}</div>
+  ${defLine()}<div class="pl" style="margin-top:8px">${S.players.map((p,i)=>`<div class="${p.hp<=0?'dead':''}" onclick="upg(${i})"><b>${ROLES[p.role].e} ${esc(p.name)}</b>${p.pts>0&&p.hp>0?'<span class="pb">+'+p.pts+'</span>':''}${S.sep&&S.sep.who.includes(i)?'<span class="mut"> · منفصل</span>':''}${(p.hun??80)<25?' 🍞':''}${(p.thr??80)<25?' 💧':''}<br><span class="mut">${p.role}</span> ${(p.fx||[]).map(f=>FXI[f.type]||'').join('')}<div class="bar"><i style="width:${p.hp}%;background:${p.hp>60?'var(--grn)':p.hp>30?'var(--hz)':'var(--red)'}"></i></div>${p.hp<=0?(p.turned?'تحوّل':'مات'):(p.inf?'☣ عدوى':'')}${p.power?'<br>✨ '+esc(p.power):''}</div>`).join('')}</div>
   <div class="tape" style="margin-top:12px"></div>
-  ${lv}${splitBox()}${newsBox()}${infBox()}${sc.boss?'<div class="mut" style="color:var(--red)">⚠️ زعيم المرحلة</div>':''}
-  <div class="scene"><div class="mut">المشهد ${S.n}</div><div class="story">${esc(sc.text)}</div></div>
+  ${lv}${splitBox()}${newsBox()}${infBox()}${sepBox()}${sc.boss?'<div class="mut" style="color:var(--red)">⚠️ زعيم المرحلة</div>':''}
+  <div class="scene"><div class="mut">${tm(S.t)}</div><div class="story">${esc(sc.text)}</div></div>
   ${S.over?endBox():`${sc.timer?'<div class="mut">قرروا بسرعة!</div><div class="tm" id="tm" style="width:100%"></div>':''}
   <div id="chs">${sc.dual&&S.split?dualHtml(sc):sc.choices.map((c,i)=>`<button class="ch" onclick="pick(${i})"><b class="lt">${'أبجد'[i]}</b>${esc(c)}</button>`).join('')}</div><div id="cf"></div>${S.split?'':acts()}`}
-  <div class="bottom"><button onclick="upg()">🔧 تطوير${pts?' ('+pts+')':''}</button><button onclick="team()">👥 الفريق</button><button onclick="code()">💾 كود</button><button onclick="finish()">📖 نهاية</button></div>`;sysPop();
+  <button class="bagbtn" onclick="bag()">${ic('pack')}</button><div class="bottom"><button onclick="upg()">🔧 تطوير${pts?' ('+pts+')':''}</button><button onclick="team()">👥 الفريق</button>${S.players.length>1&&!S.sep&&S.players.filter(q=>q.hp>0).length>1?'<button onclick="privAsk()">🔒 سرّي</button>':''}<button onclick="code()">💾 كود</button><button onclick="finish()">📖 نهاية</button></div>`;sysPop();
   if(sc.timer&&!S.over){let t=12;tmr=setInterval(()=>{t--;const b=$('tm');if(b)b.style.width=(t/12*100)+'%';if(t<=0){clearInterval(tmr);timeUp()}},1000)}
 }
 function endBox(){return `<div class="box" style="border-color:var(--hz)"><b>${{win:'نجوتوا! 🎉',lose:'الرحلة انتهت بمأساة 💀',twist:'نهاية مفاجئة...'}[S.over]||'النهاية'}</b><p class="mut">دلوقتي الراوي هيكتب رحلتكم كلها كرواية قصيرة.</p><button class="pri" onclick="novel()">اكتب الرواية</button></div>`}
 function pick(i){
-  if(S.players.length==1){confirmPick(i);return}
+  if(S.players.length==1||soloT()){confirmPick(i);return}
   picked=i;document.querySelectorAll('.ch').forEach((b,k)=>b.classList.toggle('sel',k==i));
   $('cf').innerHTML=`<div class="box"><b>كل اللاعبين موافقين على الاختيار ده؟</b><div class="row" style="margin-top:8px"><button class="pri" onclick="confirmPick(${i})">كلنا موافقين ✓</button><button onclick="$('cf').innerHTML='';document.querySelectorAll('.ch').forEach(b=>b.classList.remove('sel'))">لسه بنتناقش</button></div></div>`;
 }
@@ -494,17 +557,48 @@ function team(){
   ${p.hp>0&&hurt?`<button style="margin-top:8px" ${S.res.meds<1?'disabled':''} onclick="heal(${i})">💊 عالج (يستهلك دواء، المتبقي ${S.res.meds})</button>`:''}
   <button style="margin-top:8px" onclick="goal(${i})">${S.players.length>1?'هدفي السري (صاحبه فقط يرى)':'هدفك السري'}</button><div id="g${i}" class="mut"></div></div>`}).join('')}
   ${S.allies.length?`<div class="box"><h3>🤝 الحلفاء</h3>${S.allies.map(a=>`<div style="margin:10px 0"><b>${esc(a.name)}</b> <span class="mut">${esc(a.skill||'')}</span><div class="bar"><i style="width:${a.trust*10}%;background:${a.trust<=2?'var(--red)':a.trust<=4?'var(--hz)':'var(--grn)'}"></i></div><span class="mut">ثقة ${a.trust}/10 · ${a.trust<=2?'⚠️ قد يخونكم في أي لحظة':a.trust<=4?'متردد':a.trust>=8?'وفيّ لكم':'يثق بكم'}</span></div>`).join('')}</div>`:''}
-  ${castBox()}<p class="mut">المستوى ${S.level}، قتلى ${S.kills}. المستوى التالي عند ${S.level*5} قتيل.</p></div></div>`;
+  ${trustBox()}${placesBox()}${castBox()}<p class="mut">المستوى ${S.level}، قتلى ${S.kills}. المستوى التالي عند ${S.level*5} قتيل.</p></div></div>`;
 }
 function goal(i){const e=$('g'+i);e.textContent=e.textContent?'':S.players[i].goal}
-function upg(){
+const ABIL={'مقاتل':[{n:'ضربة قاضية',lv:1,t:'ضربة قوية تقضي على عدو أو تُسقط وحشاً'},{n:'درع بشري',lv:3,t:'يتقدم ويتلقى الضرر عن رفاقه'}],
+'طبيب':[{n:'إسعاف سريع',lv:1,t:'يضمّد رفيقاً أثناء المعركة'},{n:'مصل طارئ',lv:3,t:'يحاول إبطاء العدوى عند مصاب'}],
+'مستكشف':[{n:'كمين صامت',lv:1,t:'يهاجم من الخلف دون أن يُرى'},{n:'طريق سري',lv:3,t:'يفتح مساراً آمناً بين البيوت'}],
+'مهندس':[{n:'فخ مرتجل',lv:1,t:'ينصب فخاً يوقف مجموعة مصابين'},{n:'تفجير موجّه',lv:3,t:'يستخدم وقوداً وذخيرة لتفجير حاسم'}],
+'صياد':[{n:'رمية قناص',lv:1,t:'يصيب هدفاً بعيداً بدقة'},{n:'تتبّع',lv:3,t:'يقتفي الأثر ويكشف الكمائن والموارد'}],
+'متوازن':[{n:'إصرار',lv:1,t:'يرفض الاستسلام ويقاتل حتى النهاية'},{n:'خطة بديلة',lv:3,t:'يرتجل مخرجاً من موقف مستحيل'}]};
+let UPO=null;
+function abil(i,k){const p=S.players[i],a=ABIL[p.role][k];if(S.level<a.lv||p.hp<=0||(p.cdn&&p.cdn[a.n]>S.t))return;closeM();
+  pickCustom(`استخدم ${p.name} قدرته «${a.n}» (${a.t}) في هذا الموقف`,null,()=>{p.cdn=p.cdn||{};p.cdn[a.n]=S.t+180})}
+function upg(only){UPO=only==null?null:only;
   const tot=S.players.reduce((a,p)=>a+(p.hp>0?p.pts:0),0);
   $('modal').innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div class="sysp" style="max-width:520px">
   <div class="sysh">[ نافذة الحالة ]</div><div class="sysl" style="text-align:center">النقاط المتاحة: <b style="color:#7fd6ff;font-size:1.2rem">${tot}</b></div>
-  ${S.players.map((p,i)=>`<div class="sysc"><div class="row" style="justify-content:space-between"><b>${esc(p.name)}</b><span style="color:#7fa9c9;font-size:.85rem">${p.role} · مستوى ${S.level} · نقاط ${p.pts}</span></div>
-  ${SK.map(k=>`<div class="sk2"><span>${k}</span><div class="sb"><i style="width:${Math.min(100,p.sk[k]*10)}%"></i></div><b>${p.sk[k]}</b><button class="sysb" ${p.pts&&p.hp>0?'':'disabled'} onclick="up(${i},'${k}')">+</button></div>`).join('')}</div>`).join('')}</div></div>`;
+  ${S.players.map((p,i)=>only!=null&&only!==i?'':`<div class="sysc"><div class="row" style="justify-content:space-between"><b>${esc(p.name)}</b><span style="color:#7fa9c9;font-size:.85rem">${p.role} · مستوى ${S.level} · نقاط ${p.pts}</span></div>
+  <div class="bar" style="margin:6px 0"><i style="width:${p.hp}%;background:${p.hp>60?'var(--grn)':p.hp>30?'var(--hz)':'var(--red)'}"></i></div>
+  <div style="color:#7fa9c9;font-size:.82rem;margin-bottom:4px">صحة ${p.hp} · جوع ${p.hun??80} · عطش ${p.thr??80}</div>
+  ${SK.map(k=>`<div class="sk2"><span>${k}</span><div class="sb"><i style="width:${Math.min(100,p.sk[k]*10)}%"></i></div><b>${p.sk[k]}</b><button class="sysb" ${p.pts&&p.hp>0?'':'disabled'} onclick="up(${i},'${k}')">+</button></div>`).join('')}
+  ${fxHtml(p,false)}${p.power?'<div class="pro">✨ '+esc(p.power)+'</div>':''}
+  <div style="color:#7fa9c9;margin-top:8px">القدرات</div>${ABIL[p.role].map((a,k)=>{const cd=(p.cdn&&p.cdn[a.n]>S.t)?p.cdn[a.n]-S.t:0,lock=S.level<a.lv;return `<div class="sk2"><span style="width:auto;flex:1">${a.n}<br><small style="color:#7fa9c9">${lock?'تُفتح عند المستوى '+a.lv:cd?'جاهزة بعد '+hrs(cd):a.t}</small></span><button class="sysb" ${lock||cd||p.hp<=0?'disabled':''} onclick="abil(${i},${k})">استخدم</button></div>`}).join('')}</div>`).join('')}</div></div>`;
 }
-function up(i,k){const p=S.players[i];if(p.pts>0){p.pts--;p.sk[k]++;save();upg();if(S.players.every(x=>!x.pts)){closeM();game()}}}
+const closeB=()=>{closeM();game()};
+function bag(){
+  if(S.scene&&S.scene.timer&&!S.over){alert('لا وقت للحقيبة في لحظة الخطر!');return}
+  S.open=S.open||[];const R=S.res,po=S.open.reduce((a,x)=>a+x.p,0);
+  $('modal').innerHTML=`<div class="modal" onclick="if(event.target==this)closeB()"><div class="sysp" style="max-width:520px"><div class="sysh">[ الحقيبة ]</div>
+  <div class="bagg">${['food','water','meds','fuel','ammo'].map(k=>`<div class="bg">${RES[k].split(' ')[0]}<b>${R[k]}</b><small>${RES[k].split(' ')[1]}</small></div>`).join('')}</div>
+  <div class="sysl">${po?`حصص طعام مفتوحة: <b>${po}</b> · أقدمها تفسد بعد ${hrs(S.open[0].exp-S.t)}`:'لا توجد حصص مفتوحة'}</div>
+  <button class="sysb" style="width:100%" ${R.food<1?'disabled':''} onclick="openCan()">افتح علبة طعام وقسّمها إلى 3 حصص</button>
+  ${S.players.map((p,i)=>p.hp<=0?'':`<div class="sysc"><b>${esc(p.name)}</b>
+  <div class="sk2"><span>جوع</span><div class="sb"><i style="width:${p.hun??80}%"></i></div><b>${p.hun??80}</b><button class="sysb" ${po?'':'disabled'} onclick="eat(${i})">كُل</button></div>
+  <div class="sk2"><span>عطش</span><div class="sb"><i style="width:${p.thr??80}%"></i></div><b>${p.thr??80}</b><button class="sysb" ${R.water<1?'disabled':''} onclick="drink(${i})">اشرب</button></div></div>`).join('')}
+  <div style="color:#7fa9c9;font-size:.82rem">الجوع والعطش ينقصان كل مشهد، وعند الصفر تفقد صحتك. الحصة المفتوحة تفسد بعد 8 ساعات.</div>
+  <button class="sysb" style="width:100%;margin-top:8px" onclick="closeB()">إغلاق</button></div></div>`}
+function openCan(){if(S.res.food<1)return;S.res.food--;S.open=(S.open||[]).concat([{p:3,exp:S.t+480}]);save();bag()}
+function eat(i){if(!S.open||!S.open.length)return;S.open[0].p--;if(S.open[0].p<=0)S.open.shift();const p=S.players[i];p.hun=Math.min(100,(p.hun??80)+30);save();bag()}
+function drink(i){if(S.res.water<1)return;S.res.water--;const p=S.players[i];p.thr=Math.min(100,(p.thr??80)+45);save();bag()}
+function planBox(){return `<div class="box plan"><div style="color:#7fd6ff">${ic('spark')} خيارك الخاص</div><textarea id="plan" rows="2" placeholder="اكتبوا خطتكم... مثلاً: نشعل النار في المخزن لنجذب المصابين، أو: نرجع للبيت اللي حصّنّاه"></textarea><button class="sysb" style="width:100%;margin-top:6px" onclick="planGo()">جرّبوا الخطة</button></div>`}
+function planGo(){const t=($('plan').value||'').trim();if(t.length<4)return;pickCustom('خطة كتبها اللاعبون بأنفسهم وعليك تجربتها بواقعية: '+t)}
+function up(i,k){const p=S.players[i];if(p.pts>0){p.pts--;p.sk[k]++;save();upg(UPO);if(S.players.every(x=>!x.pts)){closeM();game()}}}
 
 function code(){
   const c=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
